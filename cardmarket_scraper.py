@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import csv
+from datetime import datetime
 
 def create_pricelist(csv_file, column_index, condition_value):
     with open(csv_file, 'r') as file:
@@ -24,9 +25,35 @@ def create_pricelist(csv_file, column_index, condition_value):
             else:
                 price_trend_element = soup.find(class_=lambda value: value and value.startswith("labeled row")).find_all(class_=lambda value: value and value.startswith("col-6 col-xl-7"))[5].text
                 pricelist.append(price_trend_element)
+                print('Loading..')
     return pricelist
 
+def write_result_file(result_file, pricelist):
+    current_date = datetime.now().date()
+    formatted_date = current_date.strftime("%Y-%m-%d")
+    rows = []
+    #create a list for each row in result file
+    with open(result_file, 'r', newline='') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            rows.append(row)
+    #check number of columns in a result file
+    #append price information to each row in result file
+    for i in range(len(rows)):
+        if i == 0:
+            rows[i].append(f'Price trend {formatted_date}')
+        else:
+            rows[i].append(pricelist[i-1])
+
+    #write new information to result_file
+    with open(result_file, 'w', newline='') as file2:
+        writer = csv.writer(file2)
+        writer.writerows(rows)
 
 
-print(check_column_value('cardlist.csv', 3, 'Y'))
+
+
+x = create_pricelist('cardlist.csv', 3, 'Y')
+write_result_file('cardlist_result.csv', x)
+
 
